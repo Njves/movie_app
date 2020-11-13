@@ -9,16 +9,14 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtGui import QPalette, QFont, QIcon
-from PyQt5.QtWidgets import QWidget, QFileDialog, QMessageBox
+from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QFileDialog, QMessageBox
 
-from movie_app.movie import Movie
-from movie_app.movie_database import MovieDatabase
+from movie import Movie
+from movie_database import MovieDatabase
+from res_owner import ResourceOwner
+
 import random as rnd
-
-
-from movie_app.res_owner import ResourceOwner
-
 
 class MovieAddForm(QtWidgets.QWidget):
     def __init__(self, parent):

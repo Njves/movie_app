@@ -12,8 +12,9 @@ class NetworkService:
     def __init__(self):
         pass
 
-    def get_top_films(self):
-        r = requests.get(url=self.__kinopoisk_api + self.__api_paths["top"] + "?type=TOP_250_BEST_FILMS&page=2",
+    def get_top_films(self, page):
+        r = requests.get(url=self.__kinopoisk_api + self.__api_paths["top"] + "?type=TOP_250_BEST_FILMS&page={0}".format(page),
                          headers={"accept": "application/json", "X-API-KEY": self.__api_key})
         print(r.json())
         return r.json()['films']
+

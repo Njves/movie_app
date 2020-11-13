@@ -3,14 +3,15 @@ import sqlite3
 
 import requests
 
-from movie_app.movie import Movie
-from movie_app.network_service import NetworkService
-from movie_app.res_owner import ResourceOwner
+from movie import Movie
+from network_service import NetworkService
+from res_owner import ResourceOwner
 
 
 class MovieDatabase:
     _table_name = "movie"
     _genre_table_name = "genres"
+
     def __init__(self):
         self.db = sqlite3.connect("movie.db")
         self.cursor = self.db.cursor()
@@ -30,7 +31,6 @@ class MovieDatabase:
         self.cursor.close()
         self.create_genre_table()
 
-
     def create_genre_table(self):
         self.cursor = self.db.cursor()
         self.cursor.execute(f""" CREATE TABLE IF NOT EXISTS {self._genre_table_name}(id INT, title TEXT)""")
@@ -39,8 +39,15 @@ class MovieDatabase:
     def make_movie_list(self, data):
         movie_list = []
         for i in data:
-            movie_list.append(Movie(i[1],i[2], i[3], i[4], i[5], i[6], i[7], i[8], i[9]))
+            movie_list.append(Movie(i[1], i[2], i[3], i[4], i[5], i[6], i[7], i[8], i[9]))
         return movie_list
+
+    def make_movie_from_tuple(self, tuple_movie):
+        request = requests.get(tuple_movie['posterUrlPreview'])
+        image = ResourceOwner().download_image(request.content)
+        return Movie(tuple_movie['nameEn'], tuple_movie['nameRu'], tuple_movie['year'], image,
+                     tuple_movie['countries'][0]['country'], tuple_movie['rating'], "",
+                     tuple_movie['genres'][0]['genre'], "film")
 
     def get_movie_list(self):
         cursor = self.db.cursor()
@@ -73,7 +80,8 @@ class MovieDatabase:
     def delete_movie(self, movie):
         cursor = self.db.cursor()
         cursor.execute(f"DELETE FROM {self._table_name} WHERE title = ?", (movie.title,))
-        #self.db.commit()
+        # TODO: Убрать комментарий
+        # self.db.commit()
         cursor.close()
         return True
 
@@ -94,7 +102,7 @@ class MovieDatabase:
     def search_by_title(self, query):
         cursor = self.db.cursor()
         try:
-            cursor.execute(f"SELECT * FROM {self._table_name} WHERE title LIKE '{query}%'")
+            cursor.execute(f"SELECT * FROM {self._table_name} WHERE title_ru LIKE '{query}%'")
         except sqlite3.DatabaseError as e:
             print(e)
         data = cursor.fetchall()
@@ -126,5 +134,22 @@ class MovieDatabase:
         cursor.close()
         return movie_list
 
+    def search_by_year(self):
+        cursor = self.db.cursor()
+        query = f"SELECT * FROM {self._table_name} ORDER BY created_date DESC"
+        try:
+            cursor.execute(query)
+        except sqlite3.DatabaseError as e:
+            print(e)
+        sort_list = cursor.fetchall()
+        sorted_movie_list = self.make_movie_list(sort_list)
+        return sorted_movie_list
 
-
+    def parse_movie_from_json(self):
+        service = NetworkService()
+        page = 2
+        top = service.get_top_films(page)
+        for i in top:
+            movie = self.make_movie_from_tuple(i)
+            self.add_movie(movie)
+            print(f"Загрузка {i}")
