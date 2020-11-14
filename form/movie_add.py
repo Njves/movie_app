@@ -30,7 +30,7 @@ class MovieAddForm(QtWidgets.QWidget):
 
     def setupUi(self):
         self.setObjectName("Form")
-        self.setGeometry(200, 30, 640, 600)
+        self.setGeometry(1366 // 2, 768 // 2, 640, 600)
         self.gridLayoutWidget = QtWidgets.QWidget(self)
 
         self.gridLayoutWidget.setGeometry(QtCore.QRect(0, 0, 620, 530))

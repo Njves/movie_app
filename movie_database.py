@@ -46,7 +46,7 @@ class MovieDatabase:
         request = requests.get(tuple_movie['posterUrlPreview'])
         image = ResourceOwner().download_image(request.content)
         return Movie(tuple_movie['nameEn'], tuple_movie['nameRu'], tuple_movie['year'], image,
-                     tuple_movie['countries'][0]['country'], tuple_movie['rating'], "",
+                     tuple_movie['countries'][0]['country'], 8.0, "",
                      tuple_movie['genres'][0]['genre'], "film")
 
     def get_movie_list(self):
@@ -148,8 +148,14 @@ class MovieDatabase:
     def parse_movie_from_json(self):
         service = NetworkService()
         page = 2
-        top = service.get_top_films(page)
-        for i in top:
-            movie = self.make_movie_from_tuple(i)
-            self.add_movie(movie)
-            print(f"Загрузка {i}")
+        #top = service.get_top_films(page)
+        #for i in top:
+        #    movie = self.make_movie_from_tuple(i)
+        #    self.add_movie(movie)
+        #    print(f"Загрузка {i}")
+
+    def parse_movie(self):
+        film = NetworkService().get_film()['data']
+        movie = self.make_movie_from_tuple(film)
+        self.add_movie(movie)
+        print(f"Загрузка {film}")

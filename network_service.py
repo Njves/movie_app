@@ -18,3 +18,9 @@ class NetworkService:
         print(r.json())
         return r.json()['films']
 
+    def get_film(self):
+        r = requests.get(
+            url=self.__kinopoisk_api + "/api/v2.1/films/5492",
+            headers={"accept": "application/json", "X-API-KEY": self.__api_key})
+        print(r.json())
+        return r.json()
