@@ -15,7 +15,7 @@
 import sys
 
 from PyQt5 import QtCore, QtWidgets
-from PyQt5.QtCore import QSize, Qt, pyqtSignal, QThread
+from PyQt5.QtCore import QSize, Qt, pyqtSignal
 from PyQt5.QtGui import QPixmap, QIcon, QMouseEvent
 from PyQt5.QtWidgets import QWidget, QListWidgetItem, QMessageBox
 
@@ -32,7 +32,8 @@ movieDatabase = MovieDatabase()
 class MovieItemWidget(QWidget):
     # Сигнал для удаления виджета
     itemDeleted = pyqtSignal(QListWidgetItem)
-    itemUpdated = pyqtSignal(QListWidgetItem)
+    itemUpdated = pyqtSignal()
+
     def __init__(self, movie, item):
         super().__init__()
         # Сохранение ссылки на элемент виджета
@@ -114,9 +115,9 @@ class MovieItemWidget(QWidget):
             self.detail = MovieDetailForm(self.movie, self)
             self.detail.show()
 
-    def updateItem(self):
-        pass
-            #movieDatabase.update_movie(self.movie)
+    def updateItem(self, movie):
+        movieDatabase.update_movie(movie)
+        self.itemUpdated.emit()
 
 
 # Главное окно
@@ -141,13 +142,14 @@ class MainWindow(QtWidgets.QMainWindow):
     # Инициалзиция интерфейса
     def setupUi(self):
         self.setObjectName("Form")
+        self.setGeometry(50, 50, 1280, 650)
         self.setFixedSize(1280, 650)
         self.setWindowTitle("Movie App")
         self.setWindowIcon(QIcon(ResourceOwner.icon))
 
         self.listWidget = QtWidgets.QListWidget(self)
         self.listWidget.setEnabled(True)
-        self.listWidget.setGeometry(QtCore.QRect(468, 60, 801, 571))
+        self.listWidget.setGeometry(QtCore.QRect(468, 90, 801, 541))
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -155,19 +157,25 @@ class MainWindow(QtWidgets.QMainWindow):
         self.listWidget.setSizePolicy(sizePolicy)
         self.listWidget.setObjectName("listWidget")
 
+        self.label_type_view = QtWidgets.QLabel(self)
+        self.label_type_view.setGeometry(468, 60, 801, 30)
+        self.label_type_view.setAlignment(Qt.AlignCenter)
+        self.label_type_view.setText("Кинотека")
+
+
         # Деление прямоугольника на 3 равные части
         self.pushButton_2 = QtWidgets.QPushButton(self)
-        self.pushButton_2.setGeometry(450 // 2 - 50, (661 // 3) // 2, 120, 120)
+        self.pushButton_2.setGeometry(450 // 2 - 50, (661 // 3) // 2, 100, 100)
         self.pushButton_2.setObjectName("pushButton_2")
         self.pushButton_2.clicked.connect(self.open_add_form)
 
         self.pushButton_3 = QtWidgets.QPushButton(self)
         self.pushButton_3.setObjectName("pushButton_3")
-        self.pushButton_3.setGeometry(450 // 2 - 50, ((661 // 2) * 2) // 2, 120, 120)
+        self.pushButton_3.setGeometry(450 // 2 - 50, ((661 // 2) * 2) // 2, 100, 100)
 
         self.pushButton = QtWidgets.QPushButton(self)
         self.pushButton.setObjectName("pushButton")
-        self.pushButton.setGeometry(450 // 2 - 50, 661 - 150, 120, 120)
+        self.pushButton.setGeometry(450 // 2 - 50, 661 - 150, 100, 100)
 
         self.label_panel = QtWidgets.QLabel(self)
         self.label_panel.setGeometry(QtCore.QRect(0, 2, 470, 60))
@@ -220,7 +228,7 @@ class MainWindow(QtWidgets.QMainWindow):
         _translate = QtCore.QCoreApplication.translate
         self.setWindowTitle(_translate("Form", "Movie App"))
         self.pushButton_2.setText(_translate("Form", "Добавить фильм"))
-        self.pushButton_3.setText(_translate("Form", "Перейти в избраное"))
+        self.pushButton_3.setText(_translate("Form", "Избранное"))
         self.pushButton.setText(_translate("Form", "Лол?)"))
         self.label_panel.setText(_translate("Form", "Панель управления"))
         self.comboBox_field.setItemText(0, "Название")
@@ -241,7 +249,11 @@ class MainWindow(QtWidgets.QMainWindow):
                                        "font-size: 15px")
         self.listWidget.setStyleSheet("#listWidget{border: 2px solid black; "
                                       " border-bottom: none;"
-                                      " border-right: none}")
+                                      " border-right: none;"
+                                      "}")
+        self.label_type_view.setStyleSheet(
+            "border: 2px solid black; border-bottom: none;"
+            "font-weight: bold; font-size: 15px; border-right: none")
 
     def open_add_form(self):
         # Форма добавления нового фильма
@@ -277,8 +289,6 @@ class MainWindow(QtWidgets.QMainWindow):
         # Перебираем фильмы и создаем виджеты
         self.set_data_to_widget(movie_list)
 
-
-
     def set_data_to_widget(self, movie_list):
         for i in movie_list:
             item = QListWidgetItem(self.listWidget)
@@ -296,7 +306,6 @@ class MainWindow(QtWidgets.QMainWindow):
         movieDatabase.add_movie(movie)
         self.bind_data(None)
         self.listWidget.scrollToBottom()
-
 
     # Функция фильтрации фильмов
     def filter_movie(self, query):

@@ -3,8 +3,8 @@ import uuid
 
 class Movie:
     # TODO: Добавить длительность
-    def __init__(self, title, title_ru, created_date, image_path, country, rating, description, genres, movie_type):
-        self._id = uuid.uuid1()
+    def __init__(self, uid, title, title_ru, created_date, image_path, country, rating, description, genres, movie_type):
+        self.uid = uid
         self.title = title
         self.title_ru = title_ru
         self.created_date = created_date
@@ -20,7 +20,7 @@ class Movie:
 
     @property
     def id(self) -> str:
-        return str(self._id)
+        return str(self.uid)
 
     def __str__(self) -> str:
         return f"id: {self.id}, title: {self.title}, date: {self.created_date}, image_path: {self.image_path}," \
