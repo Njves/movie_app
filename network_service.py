@@ -13,14 +13,21 @@ class NetworkService:
         pass
 
     def get_top_films(self, page):
-        r = requests.get(url=self.__kinopoisk_api + self.__api_paths["top"] + "?type=TOP_250_BEST_FILMS&page={0}".format(page),
-                         headers={"accept": "application/json", "X-API-KEY": self.__api_key})
+        r = requests.get(
+            url=self.__kinopoisk_api + self.__api_paths["top"] + "?type=TOP_250_BEST_FILMS&page={0}".format(page),
+            headers={"accept": "application/json", "X-API-KEY": self.__api_key})
         print(r.json())
-        return r.json()['films']
+        if r.status_code == 200:
+            return r.json()['films']
+        else:
+            return []
 
     def get_film(self):
         r = requests.get(
             url=self.__kinopoisk_api + "/api/v2.1/films/5492",
             headers={"accept": "application/json", "X-API-KEY": self.__api_key})
         print(r.json())
-        return r.json()
+        if r.status_code == 200:
+            return r.json()
+        else:
+            return []

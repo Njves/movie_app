@@ -11,6 +11,7 @@ from res_owner import ResourceOwner
 class MovieDatabase:
     _table_name = "movie"
     _genre_table_name = "genres"
+    _type_table_name = "type"
 
     def __init__(self):
         self.db = sqlite3.connect("movie.db")
@@ -32,6 +33,14 @@ class MovieDatabase:
         self.create_genre_table()
 
     def create_genre_table(self):
+        self.cursor = self.db.cursor()
+        self.cursor.execute(f""" CREATE TABLE IF NOT EXISTS {self._genre_table_name}(title TEXT)""")
+        self.cursor.executemany(f""" INSERT INTO {self._genre_table_name} VALUES(?,?)""", [(0,"боевик"), (1,"драма"), (2,"комедия")])
+        self.db.commit()
+        self.cursor.close()
+
+
+    def create_type_table(self):
         self.cursor = self.db.cursor()
         self.cursor.execute(f""" CREATE TABLE IF NOT EXISTS {self._genre_table_name}(id INT, title TEXT)""")
         self.cursor.close()
@@ -80,8 +89,7 @@ class MovieDatabase:
     def delete_movie(self, movie):
         cursor = self.db.cursor()
         cursor.execute(f"DELETE FROM {self._table_name} WHERE title = ?", (movie.title,))
-        # TODO: Убрать комментарий
-        # self.db.commit()
+        self.db.commit()
         cursor.close()
         return True
 
@@ -91,6 +99,11 @@ class MovieDatabase:
         self.db.commit()
         cursor.close()
         return True
+
+    def update_movie(self):
+        cursor = self.db.cursor()
+        cursor.execute(f""" UPDATE TABLE {self._table_name} SET 
+                        """)
 
     def change_image_path(self):
         m_list = ResourceOwner().get_images()
@@ -156,6 +169,7 @@ class MovieDatabase:
 
     def parse_movie(self):
         film = NetworkService().get_film()['data']
-        movie = self.make_movie_from_tuple(film)
-        self.add_movie(movie)
-        print(f"Загрузка {film}")
+        if len(film) > 0:
+            movie = self.make_movie_from_tuple(film)
+            self.add_movie(movie)
+            print(f"Загрузка {film}")

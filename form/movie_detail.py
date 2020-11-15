@@ -9,18 +9,25 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtGui import QPixmap, QIcon
+
+from res_owner import ResourceOwner
 
 
 class MovieDetailForm(QtWidgets.QWidget):
-    def __init__(self, movie):
+    def __init__(self, movie, parent):
         super().__init__()
         self.movie = movie
+        self.parent = parent
+        print(movie)
+        self.setupUi()
 
     def setupUi(self):
         self.setObjectName("MovieDetailForm")
         self.resize(600, 560)
+        self.setWindowIcon(QIcon(ResourceOwner.icon))
         self.formLayoutWidget = QtWidgets.QWidget(self)
-        self.formLayoutWidget.setGeometry(QtCore.QRect(0, 310, 601, 241))
+        self.formLayoutWidget.setGeometry(QtCore.QRect(0, 310, 601, 170))
         self.formLayoutWidget.setObjectName("formLayoutWidget")
         self.formLayout = QtWidgets.QFormLayout(self.formLayoutWidget)
         self.formLayout.setContentsMargins(8, 8, 8, 8)
@@ -69,8 +76,16 @@ class MovieDetailForm(QtWidgets.QWidget):
         self.labelImage.setGeometry(QtCore.QRect(250, 0, 131, 300))
         self.labelImage.setObjectName("labelImage")
 
+        self.pushButtonSave = QtWidgets.QPushButton(self)
+        self.pushButtonSave.setGeometry(250, 490, 130, 50)
+        self.pushButtonSave.setText("Сохранить")
+        self.pushButtonSave.setStyleSheet("font-weight: bold")
+        self.pushButtonSave.clicked.connect(self.update_movie)
         self.retranslateUi()
         QtCore.QMetaObject.connectSlotsByName(self)
+
+    def update_movie(self):
+        self.parent.updateItem()
 
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
@@ -84,3 +99,10 @@ class MovieDetailForm(QtWidgets.QWidget):
         self.labelType.setText(_translate("MovieDetailForm", "Тип"))
         self.pushButtonImage.setText(_translate("MovieDetailForm", "Изменить постер"))
         self.labelImage.setText(_translate("MovieDetailForm", "TextLabel"))
+
+        pixmap = QPixmap(self.movie.image_path)
+        self.labelImage.setPixmap(pixmap)
+        self.lineEditTitle.setText(self.movie.title_ru)
+        self.lineEditYear.setText(str(self.movie.created_date))
+        self.lineEditCountry.setText(self.movie.country)
+        self.lineEditRating.setText(str(self.movie.rating))

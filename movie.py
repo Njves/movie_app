@@ -24,7 +24,8 @@ class Movie:
 
     def __str__(self) -> str:
         return f"id: {self.id}, title: {self.title}, date: {self.created_date}, image_path: {self.image_path}," \
-               f"country: {self.country}, description: {self.description}, genres: {self.genres}, movie_type: {self.movie_type}"
+               f"country: {self.country}, description: {self.description}, genres: {self.genres}, movie_type: {self.movie_type},"\
+                f"rating: {self.rating}"
 
 
 

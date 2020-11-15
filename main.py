@@ -28,12 +28,11 @@ from res_owner import ResourceOwner
 movieDatabase = MovieDatabase()
 
 
-
 # Виджет одного объекта фильма
 class MovieItemWidget(QWidget):
     # Сигнал для удаления виджета
     itemDeleted = pyqtSignal(QListWidgetItem)
-
+    itemUpdated = pyqtSignal(QListWidgetItem)
     def __init__(self, movie, item):
         super().__init__()
         # Сохранение ссылки на элемент виджета
@@ -99,7 +98,6 @@ class MovieItemWidget(QWidget):
         self.pushButton_delete.clicked.connect(self.removeItem)
         QtCore.QMetaObject.connectSlotsByName(self)
 
-
     def removeItem(self):
         # Слот нажатия на кнопку удаления
         msg_warning = QMessageBox.question(self, "Предупреждение", "Вы уверены что хотите удалить фильм?",
@@ -112,11 +110,13 @@ class MovieItemWidget(QWidget):
 
     # Событие двойного нажатия на элемент
     def mouseDoubleClickEvent(self, a0: QMouseEvent) -> None:
-
         if a0.button() == Qt.LeftButton:
-            ui = MovieDetailForm(self.movie)
-            ui.setupUi()
-            ui.show()
+            self.detail = MovieDetailForm(self.movie, self)
+            self.detail.show()
+
+    def updateItem(self):
+        pass
+            #movieDatabase.update_movie(self.movie)
 
 
 # Главное окно
@@ -135,6 +135,7 @@ class MainWindow(QtWidgets.QMainWindow):
             "Фильм": "film",
             "Сериал": "serial"
         }
+
         self.setupUi()
 
     # Инициалзиция интерфейса
@@ -244,11 +245,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def open_add_form(self):
         # Форма добавления нового фильма
-        ui = MovieAddForm(self)
+        self.ui = MovieAddForm(self)
         # Сокрытие родительского окна
         self.hide()
-        ui.setupUi()
-        ui.show()
+        self.ui.setupUi()
+        self.ui.show()
 
     def show_form(self):
         # Инкапсуляция события
@@ -263,6 +264,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.listWidget.removeItemWidget(item)
         del item
 
+    def updateItem(self):
+        self.bind_data(None)
+        print("Апдейт")
+
     def bind_data(self, movie_list):
         # Очистить предыдущий список в целях предоствращения добавления одинаковых элементов
         self.listWidget.clear()
@@ -272,6 +277,8 @@ class MainWindow(QtWidgets.QMainWindow):
         # Перебираем фильмы и создаем виджеты
         self.set_data_to_widget(movie_list)
 
+
+
     def set_data_to_widget(self, movie_list):
         for i in movie_list:
             item = QListWidgetItem(self.listWidget)
@@ -279,15 +286,17 @@ class MainWindow(QtWidgets.QMainWindow):
             widget = MovieItemWidget(i, item)
             # Соединяем сигнал с родительской функцией удаления
             widget.itemDeleted.connect(self.removeItem)
+            widget.itemUpdated.connect(self.updateItem)
             self.listWidget.setItemWidget(item, widget)
 
     def add_movie_to_list(self, movie):
+        self.show_form()
         # Добавляем из MovieAddForm фильм в базу и обновляем список
         # Сильная привязанность + перебор всего переписка :((((((((((
         movieDatabase.add_movie(movie)
         self.bind_data(None)
         self.listWidget.scrollToBottom()
-        self.show_form()
+
 
     # Функция фильтрации фильмов
     def filter_movie(self, query):

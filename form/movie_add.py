@@ -10,7 +10,7 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QFileDialog, QMessageBox
+from PyQt5.QtWidgets import QFileDialog, QMessageBox, QWidget
 
 from movie import Movie
 from movie_database import MovieDatabase
@@ -18,19 +18,19 @@ from res_owner import ResourceOwner
 
 import random as rnd
 
-class MovieAddForm(QtWidgets.QWidget):
+
+class MovieAddForm(QWidget):
     def __init__(self, parent):
         super().__init__()
         self.database = MovieDatabase()
         self.image_path = None
         self.parent = parent
-        self.setStyleSheet("background-color: #3366CC; color: #FFFFFF; font-size: 13px; font-weight: bold")
-        self.setWindowTitle("Добавить фильм")
-        self.setWindowIcon(QIcon(ResourceOwner.icon))
+        self.close_flag = False
+
 
     def setupUi(self):
         self.setObjectName("Form")
-        self.setGeometry(1366 // 2, 768 // 2, 640, 600)
+        self.setGeometry(1366 // 2 - 400, 768 // 2 - 300, 640, 600)
         self.gridLayoutWidget = QtWidgets.QWidget(self)
 
         self.gridLayoutWidget.setGeometry(QtCore.QRect(0, 0, 620, 530))
@@ -45,12 +45,10 @@ class MovieAddForm(QtWidgets.QWidget):
 
         self.label_description = QtWidgets.QLabel(self.gridLayoutWidget)
         self.label_description.setObjectName("label_description")
-        self.label_description.setStyleSheet("margin: 5px; font-weight: bold; font-size: 13px")
         self.gridLayout.addWidget(self.label_description, 1, 0, 1, 1)
 
         self.label_image = QtWidgets.QLabel(self.gridLayoutWidget)
         self.label_image.setObjectName("label_image")
-        self.label_image.setStyleSheet("margin: 5px; font-weight: bold; font-size: 13px")
         self.gridLayout.addWidget(self.label_image, 4, 0, 1, 1)
 
         self.lineEdit_title = QtWidgets.QLineEdit(self.gridLayoutWidget)
@@ -59,13 +57,12 @@ class MovieAddForm(QtWidgets.QWidget):
 
         self.label_title = QtWidgets.QLabel(self.gridLayoutWidget)
         self.label_title.setObjectName("label_title")
-        self.label_title.setStyleSheet("margin: 5px; font-weight: bold; font-size: 13px")
         self.gridLayout.addWidget(self.label_title, 0, 0, 1, 1)
 
         self.pushButton_add_image = QtWidgets.QPushButton(self.gridLayoutWidget)
         self.pushButton_add_image.setObjectName("pushButton_add_image")
         self.pushButton_add_image.clicked.connect(self.on_click_get_image)
-        self.pushButton_add_image.setStyleSheet("background-color: #757575; font-size: 15px; ")
+
 
         self.gridLayout.addWidget(self.pushButton_add_image, 4, 1, 1, 1)
 
@@ -122,32 +119,36 @@ class MovieAddForm(QtWidgets.QWidget):
         self.pushButton_make.setGeometry(QtCore.QRect(155, 551, 331, 41))
         self.pushButton_make.setObjectName("pushButton_make")
         self.pushButton_make.clicked.connect(self.on_click_add_movie)
-        self.pushButton_make.setStyleSheet("background-color: #757575")
+
 
         self.retranslateUi()
-        QtCore.QMetaObject.connectSlotsByName(self)
+
 
     def on_click_get_image(self):
         owner = ResourceOwner()
         image_dialog = QFileDialog.getOpenFileName(self, "Выберите обложку", "", filter="*.jpg *.png")
-        self.image_path = owner.copy_image_to_dir(image_dialog[0])
+        if image_dialog[0] != '':
+            self.image_path = owner.copy_image_to_dir(image_dialog[0])
+        else:
+            return
 
     def on_click_add_movie(self):
+        self.close_flag = True
         if self.check_edit_is_empty():
             msgBox = QMessageBox(self)
             msgBox.setWindowTitle("Ошибка")
             msgBox.setText("Заполните все поля!")
             msgBox.show()
             return
-
-        title = self.lineEdit_title.text()
+        title = "Затычка"
+        title_ru = self.lineEdit_title.text()
         created_date = self.lineEdit_year.text()
         country = self.lineEdit_country.text()
         # TODO: Add rating
         description = self.lineEdit_description.text()
         genres = self.lineEdit_genre.text()
         movie_type = "film"
-        movie = Movie(title, created_date,
+        movie = Movie(title, title_ru, created_date,
                       self.image_path, country, rnd.randint(0, 10), description, genres, movie_type)
         self.parent.add_movie_to_list(movie)
         self.close()
@@ -169,8 +170,10 @@ class MovieAddForm(QtWidgets.QWidget):
             return False
 
     def retranslateUi(self):
+
         _translate = QtCore.QCoreApplication.translate
-        self.setWindowTitle(_translate("Form", "Form"))
+        self.setWindowIcon(QIcon(ResourceOwner.icon))
+        self.setWindowTitle(_translate("Form", "Добавить фильм"))
         self.label_description.setText(_translate("Form", "Описание"))
         self.label_image.setText(_translate("Form", "Выбрать превью"))
         self.label_title.setText(_translate("Form", "Название"))
@@ -183,18 +186,32 @@ class MovieAddForm(QtWidgets.QWidget):
         self.checkBox_serial.setText(_translate("Form", "Сериал"))
         self.checkBox_anime.setText(_translate("Form", "Аниме"))
         self.pushButton_make.setText(_translate("Form", "Создать"))
+        self.setupStyleSheets()
+
+    def setupStyleSheets(self):
+        self.setStyleSheet("background-color: #3366CC; color: #FFFFFF; font-size: 13px; font-weight: bold")
         self.lineEdit_title.setStyleSheet("background-color: #FFFFFF; color: black")
         self.lineEdit_country.setStyleSheet("background-color: #FFFFFF; color: black")
         self.lineEdit_genre.setStyleSheet("background-color: #FFFFFF; color: black")
         self.lineEdit_description.setStyleSheet("background-color: #FFFFFF; color: black")
         self.lineEdit_year.setStyleSheet("background-color: #FFFFFF; color: black")
-    
+        self.pushButton_make.setStyleSheet("background-color: #757575")
+        self.label_description.setStyleSheet("margin: 5px; font-weight: bold; font-size: 13px")
+        self.label_image.setStyleSheet("margin: 5px; font-weight: bold; font-size: 13px")
+        self.label_title.setStyleSheet("margin: 5px; font-weight: bold; font-size: 13px")
+        self.pushButton_add_image.setStyleSheet("background-color: #757575; font-size: 15px; ")
+
+
+
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
-        msg = QMessageBox.question(self, "Предупреждение", "Вы уверены что хотите выйти?", QMessageBox.Ok, QMessageBox.No)
+        if self.close_flag:
+            a0.accept()
+            return
+
+        msg = QMessageBox.question(self, "Предупреждение", "Вы уверены что хотите выйти?", QMessageBox.Ok,
+                                   QMessageBox.No)
         if msg == QMessageBox.Ok:
             self.parent.show()
             a0.accept()
         else:
             a0.ignore()
-
-
