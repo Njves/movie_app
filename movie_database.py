@@ -251,7 +251,7 @@ class MovieDatabase:
 
     def get_movie_from_network(self, movie_id):
         film = NetworkService().get_film(movie_id)['data']
-        print(len([]))
+        print(film)
         if len(film) > 0:
             movie = self.make_movie_from_tuple(film)
             return movie

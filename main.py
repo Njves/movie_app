@@ -17,8 +17,7 @@ import sys
 from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtCore import QSize, Qt, pyqtSignal
 from PyQt5.QtGui import QPixmap, QIcon, QMouseEvent
-from PyQt5.QtWidgets import QWidget, QListWidgetItem, QMessageBox, QAbstractItemView
-
+from PyQt5.QtWidgets import QWidget, QListWidgetItem, QMessageBox, QAbstractItemView, QDialog, QVBoxLayout
 
 from form.movie_add import MovieAddForm
 from form.movie_detail import MovieDetailForm
@@ -176,7 +175,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.label_type_view.setAlignment(Qt.AlignCenter)
         self.label_type_view.setText("Кинотека")
 
-
         # Деление прямоугольника на 3 равные части
         self.pushButton_2 = QtWidgets.QPushButton(self)
         self.pushButton_2.setGeometry(450 // 2 - 50, (661 // 3) // 2, 100, 100)
@@ -191,7 +189,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.pushButton_add_from_network = QtWidgets.QPushButton(self)
         self.pushButton_add_from_network.setObjectName("pushButton")
         self.pushButton_add_from_network.setGeometry(450 // 2 - 50, 661 - 150, 100, 100)
-        self.pushButton_add_from_network.clicked.connect(self.add_from_network)
+        self.pushButton_add_from_network.clicked.connect(self.open_add_dialog)
 
         self.label_panel = QtWidgets.QLabel(self)
         self.label_panel.setGeometry(QtCore.QRect(0, 2, 470, 60))
@@ -257,8 +255,30 @@ class MainWindow(QtWidgets.QMainWindow):
         self.label_hint_type.setText("Тип")
 
     def add_from_network(self):
-        movie = movieDatabase.get_movie_from_network(3423)
+        try:
+            self.movie_id = int(self.dialog.lineEdit.text())
+            print(self.movie_id)
+        except ValueError as e:
+            msg = QMessageBox(self)
+            msg.setText("ID не может содержать символов")
+            msg.setWindowTitle("Ошибка")
+            return
+        movie = movieDatabase.get_movie_from_network(self.movie_id)
         self.add_movie_to_list(movie)
+        self.dialog.close()
+
+    def open_add_dialog(self):
+        print("Open add dialog")
+        self.dialog = QDialog(self)
+        self.dialog.setGeometry(300, 300, 200, 100)
+        self.dialog.lineEdit = QtWidgets.QLineEdit(self.dialog)
+        self.dialog.lineEdit.setGeometry(30, 0, 150, 30)
+        self.dialog.lineEdit.setPlaceholderText("Введите ID фильма")
+        self.dialog.button = QtWidgets.QPushButton(self.dialog)
+        self.dialog.button.setGeometry(50, 40, 100, 30)
+        self.dialog.button.clicked.connect(self.add_from_network)
+        self.dialog.button.setText("Добавить")
+        self.dialog.show()
 
     def setupStyleSheets(self):
         self.label_filter.setStyleSheet("font-weight: bold; font-size: 15px")
@@ -286,7 +306,6 @@ class MainWindow(QtWidgets.QMainWindow):
     def show_favorite_movie(self):
         self.current_mode = not self.current_mode
         self.check_mode(self.current_mode)
-
 
     def check_mode(self, mode):
         if mode:
