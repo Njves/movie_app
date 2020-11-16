@@ -10,7 +10,7 @@
 
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtGui import QPixmap, QIcon
-from PyQt5.QtWidgets import QFileDialog
+from PyQt5.QtWidgets import QFileDialog, QMessageBox
 
 from movie_database import MovieDatabase
 from res_owner import ResourceOwner
@@ -94,7 +94,17 @@ class MovieDetailForm(QtWidgets.QWidget):
     def update_movie(self):
         self.movie.title_ru = self.lineEdit_title.text()
         self.movie.created_date = self.lineEdit_year.text()
-        self.movie.rating = self.lineEdit_rating.text()
+        rating = self.lineEdit_rating.text()
+        try:
+            rating = float(rating)
+            self.movie.rating = rating
+        except ValueError as e:
+            msg = QMessageBox(self)
+            msg.setWindowTitle("Ошибка")
+            msg.setText("Рейтинг должен быть числом!")
+            msg.show()
+            return
+
         if self.image_path is not None:
             self.movie.image_path = self.image_path
 

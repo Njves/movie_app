@@ -14,10 +14,11 @@
 
 import sys
 
-from PyQt5 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtCore import QSize, Qt, pyqtSignal
 from PyQt5.QtGui import QPixmap, QIcon, QMouseEvent
-from PyQt5.QtWidgets import QWidget, QListWidgetItem, QMessageBox
+from PyQt5.QtWidgets import QWidget, QListWidgetItem, QMessageBox, QAbstractItemView
+
 
 from form.movie_add import MovieAddForm
 from form.movie_detail import MovieDetailForm
@@ -97,7 +98,20 @@ class MovieItemWidget(QWidget):
         self.pushButton_delete.setText("Удалить")
         self.pushButton_delete.setStyleSheet("margin: 8px")
         self.pushButton_delete.clicked.connect(self.removeItem)
+
+        self.pushButton_favorite = QtWidgets.QPushButton(self)
+        self.pushButton_favorite.setGeometry(self.width(), 200, 100, 50)
+        self.pushButton_favorite.setText("В избранное")
+        self.pushButton_favorite.setStyleSheet("margin: 8px")
+        self.pushButton_favorite.clicked.connect(self.add_to_favorite)
+
         QtCore.QMetaObject.connectSlotsByName(self)
+
+    def add_to_favorite(self):
+        movieDatabase.add_movie_to_favorite(self.movie.uid)
+        msg = QMessageBox(self)
+        msg.setText("Добавлено")
+        print(movieDatabase.get_favorite_movie())
 
     def removeItem(self):
         # Слот нажатия на кнопку удаления
@@ -136,7 +150,7 @@ class MainWindow(QtWidgets.QMainWindow):
             "Фильм": "film",
             "Сериал": "serial"
         }
-
+        self.current_mode = False
         self.setupUi()
 
     # Инициалзиция интерфейса
@@ -169,13 +183,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self.pushButton_2.setObjectName("pushButton_2")
         self.pushButton_2.clicked.connect(self.open_add_form)
 
-        self.pushButton_3 = QtWidgets.QPushButton(self)
-        self.pushButton_3.setObjectName("pushButton_3")
-        self.pushButton_3.setGeometry(450 // 2 - 50, ((661 // 2) * 2) // 2, 100, 100)
+        self.pushButton_favorite = QtWidgets.QPushButton(self)
+        self.pushButton_favorite.setObjectName("pushButton_3")
+        self.pushButton_favorite.setGeometry(450 // 2 - 50, ((661 // 2) * 2) // 2, 100, 100)
+        self.pushButton_favorite.clicked.connect(self.show_favorite_movie)
 
-        self.pushButton = QtWidgets.QPushButton(self)
-        self.pushButton.setObjectName("pushButton")
-        self.pushButton.setGeometry(450 // 2 - 50, 661 - 150, 100, 100)
+        self.pushButton_add_from_network = QtWidgets.QPushButton(self)
+        self.pushButton_add_from_network.setObjectName("pushButton")
+        self.pushButton_add_from_network.setGeometry(450 // 2 - 50, 661 - 150, 100, 100)
+        self.pushButton_add_from_network.clicked.connect(self.add_from_network)
 
         self.label_panel = QtWidgets.QLabel(self)
         self.label_panel.setGeometry(QtCore.QRect(0, 2, 470, 60))
@@ -228,8 +244,8 @@ class MainWindow(QtWidgets.QMainWindow):
         _translate = QtCore.QCoreApplication.translate
         self.setWindowTitle(_translate("Form", "Movie App"))
         self.pushButton_2.setText(_translate("Form", "Добавить фильм"))
-        self.pushButton_3.setText(_translate("Form", "Избранное"))
-        self.pushButton.setText(_translate("Form", "Лол?)"))
+        self.pushButton_favorite.setText(_translate("Form", "Избранное"))
+        self.pushButton_add_from_network.setText(_translate("Form", "Добавить из сети"))
         self.label_panel.setText(_translate("Form", "Панель управления"))
         self.comboBox_field.setItemText(0, "Название")
         self.comboBox_field.setItemText(1, "Жанр")
@@ -239,6 +255,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.comboBox_type.setItemText(1, "Сериал")
         self.pushButton_search.setText("Найти")
         self.label_hint_type.setText("Тип")
+
+    def add_from_network(self):
+        movie = movieDatabase.get_movie_from_network(3423)
+        self.add_movie_to_list(movie)
 
     def setupStyleSheets(self):
         self.label_filter.setStyleSheet("font-weight: bold; font-size: 15px")
@@ -262,6 +282,21 @@ class MainWindow(QtWidgets.QMainWindow):
         self.hide()
         self.ui.setupUi()
         self.ui.show()
+
+    def show_favorite_movie(self):
+        self.current_mode = not self.current_mode
+        self.check_mode(self.current_mode)
+
+
+    def check_mode(self, mode):
+        if mode:
+            self.pushButton_favorite.setText("Кинотека")
+            self.bind_data(movieDatabase.get_favorite_movie())
+            self.label_type_view.setText("Избранное")
+        else:
+            self.pushButton_favorite.setText("Избранное")
+            self.bind_data(None)
+            self.label_type_view.setText("Кинотека")
 
     def show_form(self):
         # Инкапсуляция события

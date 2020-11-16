@@ -22,11 +22,10 @@ class NetworkService:
         else:
             return []
 
-    def get_film(self):
+    def get_film(self, movie_id):
         r = requests.get(
-            url=self.__kinopoisk_api + "/api/v2.1/films/5492",
+            url=self.__kinopoisk_api + f"/api/v2.1/films/{movie_id}",
             headers={"accept": "application/json", "X-API-KEY": self.__api_key})
-        print(r.json())
         if r.status_code == 200:
             return r.json()
         else:

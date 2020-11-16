@@ -33,7 +33,7 @@ class MovieAddForm(QWidget):
         self.setGeometry(1366 // 2 - 400, 768 // 2 - 300, 640, 600)
         self.gridLayoutWidget = QtWidgets.QWidget(self)
 
-        self.gridLayoutWidget.setGeometry(QtCore.QRect(0, 0, 620, 530))
+        self.gridLayoutWidget.setGeometry(QtCore.QRect(0, 0, 620, 500))
         self.gridLayoutWidget.setObjectName("gridLayoutWidget")
         self.gridLayout = QtWidgets.QGridLayout(self.gridLayoutWidget)
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
@@ -93,17 +93,27 @@ class MovieAddForm(QWidget):
         self.label_genre.setStyleSheet("margin: 5px")
         self.gridLayout.addWidget(self.label_genre, 2, 0, 1, 1)
 
+        self.label_rating = QtWidgets.QLabel(self)
+        self.label_rating.setGeometry(8, 460, 100, 30)
+        self.label_rating.setText("Рейтинг")
+
+        self.lineEdit_rating = QtWidgets.QLineEdit(self)
+        self.lineEdit_rating.setGeometry(135, 460, 480, 20)
+
+
         self.horizontalLayoutWidget = QtWidgets.QWidget(self)
-        self.horizontalLayoutWidget.setGeometry(QtCore.QRect(0, 480, 620, 71))
+        self.horizontalLayoutWidget.setGeometry(QtCore.QRect(0, 490, 620, 71))
         self.horizontalLayoutWidget.setObjectName("horizontalLayoutWidget")
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.horizontalLayoutWidget)
         self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
+
 
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.label_type = QtWidgets.QLabel(self.horizontalLayoutWidget)
         self.label_type.setObjectName("label_type")
         self.label_type.setStyleSheet("margin: 5px")
         self.horizontalLayout.addWidget(self.label_type)
+
 
         self.checkBox_film = QtWidgets.QCheckBox(self.horizontalLayoutWidget)
         self.checkBox_film.setObjectName("checkBox_film")
@@ -144,12 +154,20 @@ class MovieAddForm(QWidget):
         title_ru = self.lineEdit_title.text()
         created_date = self.lineEdit_year.text()
         country = self.lineEdit_country.text()
-        # TODO: Add rating
+        try:
+            rating = float(self.lineEdit_rating.text())
+        except ValueError as e:
+            msg = QMessageBox(self)
+            msg.setWindowTitle("Ошибка")
+            msg.setText("Рейтинг должен быть учислом")
+            msg.show()
+            return
+
         description = self.lineEdit_description.text()
         genres = self.lineEdit_genre.text()
         movie_type = "film"
         movie = Movie(uuid.uuid4(), title, title_ru, created_date,
-                      self.image_path, country, rnd.randint(0, 10), description, genres, movie_type)
+                      self.image_path, country, rating, description, genres, movie_type)
         self.parent.add_movie_to_list(movie)
         self.close()
 
@@ -164,10 +182,10 @@ class MovieAddForm(QWidget):
                               not (self.lineEdit_genre.text())]
         print(lineEdit_text_list)
         print(lineEdit_text_list.count(True))
-        if lineEdit_text_list.count(False) == 0:
-            return True
-        else:
-            return False
+        for i in lineEdit_text_list:
+            if i:
+                return True
+        return False
 
 
 
@@ -202,6 +220,7 @@ class MovieAddForm(QWidget):
         self.label_image.setStyleSheet("margin: 5px; font-weight: bold; font-size: 13px")
         self.label_title.setStyleSheet("margin: 5px; font-weight: bold; font-size: 13px")
         self.pushButton_add_image.setStyleSheet("background-color: #757575; font-size: 15px; ")
+        self.lineEdit_rating.setStyleSheet("background-color: #FFFFFF; color: black")
 
 
 

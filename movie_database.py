@@ -16,7 +16,7 @@ class MovieDatabase:
     __movie_table_name = "movie"
     __genre_table_name = "genres"
     __type_table_name = "type"
-    __favorite_table_name = None
+    __favorite_table_name = "favorite"
     def __init__(self):
 
         logging.info("db movie init")
@@ -38,6 +38,7 @@ class MovieDatabase:
         self.cursor.close()
         self.create_genre_table()
         self.create_type_table()
+        self.create_favorite_table()
 
     def create_genre_table(self):
         cursor = self.db.cursor()
@@ -66,7 +67,7 @@ class MovieDatabase:
 
     def create_favorite_table(self):
         cursor = self.db.cursor()
-        cursor.execute(f""" CREATE TABLE IF NOT EXISTS {self.__favorite_table_name} ()""")
+        cursor.execute(f""" CREATE TABLE IF NOT EXISTS {self.__favorite_table_name} (id INTEGER PRIMARY KEY AUTOINCREMENT, uid TEXT UNIQUE)""")
         self.db.commit()
         cursor.close()
 
@@ -216,6 +217,29 @@ class MovieDatabase:
         sorted_movie_list = self.make_movie_list(sort_list)
         return sorted_movie_list
 
+    def add_movie_to_favorite(self, uid):
+        cursor = self.db.cursor()
+        try:
+            cursor.execute(f""" INSERT INTO {self.__favorite_table_name}(uid) VALUES (?)""", (uid,))
+            self.db.commit()
+        except sqlite3.IntegrityError as e:
+            print(e)
+        cursor.close()
+
+    def get_favorite_movie(self):
+        cursor = self.db.cursor()
+        cursor.execute("SELECT * FROM favorite")
+        data = cursor.fetchall()
+        favorite_list = []
+        for i in data:
+            try:
+                cursor.execute(f""" SELECT * FROM {self.__movie_table_name} WHERE movie.uid = ?""", (i[1],))
+                favorite_list.append(cursor.fetchone())
+            except sqlite3.DatabaseError as e:
+                print(e)
+        favorite_movie_list = self.make_movie_list(favorite_list)
+        return favorite_movie_list
+
     def parse_movie_from_json(self):
         service = NetworkService()
         page = 2
@@ -225,9 +249,9 @@ class MovieDatabase:
         #    self.add_movie(movie)
         #    print(f"Загрузка {i}")
 
-    def parse_movie(self):
-        film = NetworkService().get_film()['data']
+    def get_movie_from_network(self, movie_id):
+        film = NetworkService().get_film(movie_id)['data']
+        print(len([]))
         if len(film) > 0:
             movie = self.make_movie_from_tuple(film)
-            self.add_movie(movie)
-            print(f"Загрузка {film}")
+            return movie
